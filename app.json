@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "ReadIt",
+    "slug": "readit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "readit",
+    "icon": "./assets/ReadIt.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/ReadIt_No_Bg.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.readit.app"
+    },
+    "android": {
+      "package": "dev.readit.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/ReadIt_No_Bg.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.ACCESS_WIFI_STATE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
