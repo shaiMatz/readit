@@ -18,7 +18,6 @@ import { useBookmarks } from '@/hooks/useBookmarks';
 import { ArticleRow, ARTICLE_ROW_HEIGHT } from '@/components/ArticleRow';
 import { FeaturedCard } from '@/components/FeaturedCard';
 import { SkeletonRow } from '@/components/SkeletonRow';
-import { OfflineBanner } from '@/components/OfflineBanner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Image } from 'react-native';
 import { spacing, fontSizes, radius } from '@/theme';
@@ -123,12 +122,11 @@ export default function FeedScreen() {
 
   const keyExtractor = useCallback((item: HNItem) => String(item.id), []);
 
-  // ── Header component (scrolls with list) ──────────────────────────────────
+  // ── Header component ──────────────────────────────────
   const Header = useMemo(
     () => (
       <View style={{ backgroundColor: colors.background }}>
-             {/* Offline / error banners */}
-        <OfflineBanner />
+        {/* Error banner */}
         {error ? (
           <View style={[styles.errorBanner, { backgroundColor: colors.error + '18' }]}>
             <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
@@ -294,7 +292,7 @@ export default function FeedScreen() {
           ListFooterComponent={ListFooter}
           ListEmptyComponent={ListEmpty}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: spacing.huge }}
+          contentContainerStyle={{ paddingBottom: spacing.huge, backgroundColor: colors.background }}
         />
       </View>
     </ErrorBoundary>

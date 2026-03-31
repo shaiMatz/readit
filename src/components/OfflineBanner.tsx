@@ -7,6 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useNetInfo } from '@react-native-community/netinfo';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { spacing, fontSizes } from '@/theme';
 
@@ -19,6 +20,7 @@ const BANNER_HEIGHT = 40;
 export function OfflineBanner() {
   const { colors } = useTheme();
   const { isConnected } = useNetInfo();
+  const insets = useSafeAreaInsets();
   // isConnected === null means NetInfo hasn't resolved yet — treat as online
   // to avoid false-positive banners on startup, emulators, or slow networks.
   const visible = isConnected === false;
@@ -34,12 +36,12 @@ export function OfflineBanner() {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
   }));
-
+  if (isConnected) return null;
   return (
     <Animated.View
       style={[
         styles.banner,
-        { backgroundColor: colors.offline },
+        { backgroundColor: colors.offline, top: insets.top },
         animatedStyle,
       ]}
       accessibilityRole="alert"
@@ -53,6 +55,9 @@ export function OfflineBanner() {
 
 const styles = StyleSheet.create({
   banner: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     height: BANNER_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',

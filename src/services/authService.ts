@@ -1,5 +1,4 @@
 import * as SecureStore from 'expo-secure-store';
-import { jwtDecode } from 'jwt-decode';
 
 const SECURE_STORE_KEY = 'readit_auth_token';
 
@@ -8,11 +7,39 @@ const VALID_CREDENTIALS = {
   password: 'password123',
 } as const;
 
-interface TokenPayload {
+// ─── Token payload shapes ─────────────────────────────────────────────────────
+
+/** Mock token: exp is Unix ms (Date.now() + 86_400_000) */
+interface MockTokenPayload {
   sub: string;
-  iat: number;
-  exp: number;
+  iat: number; // ms
+  exp: number; // ms
 }
+
+/** Real JWT payload from server: exp is Unix seconds */
+interface JwtPayload {
+  sub: string;
+  email?: string;
+  iat: number; // s
+  exp: number; // s
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Returns true if `token` looks like a 3-part JWT (header.payload.signature). */
+export function isRealJwt(token: string): boolean {
+  return token.split('.').length === 3;
+}
+
+/** Decodes the payload of a real JWT without verifying the signature. */
+function decodeJwtPayload(token: string): JwtPayload {
+  const base64url = token.split('.')[1];
+  // base64url → standard base64
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  return JSON.parse(atob(base64)) as JwtPayload;
+}
+
+// ─── Credential validation (client-side fallback) ────────────────────────────
 
 export function validateCredentials(email: string, password: string): boolean {
   return (
@@ -21,21 +48,29 @@ export function validateCredentials(email: string, password: string): boolean {
   );
 }
 
+// ─── Mock token (used when server is unreachable) ────────────────────────────
+
 export function createMockToken(email: string): string {
   const now = Date.now();
-  const payload: TokenPayload = {
+  const payload: MockTokenPayload = {
     sub: email,
     iat: now,
-    exp: now + 86_400_000, // 24 hours
+    exp: now + 86_400_000, // 24 hours in ms
   };
   return btoa(JSON.stringify(payload));
 }
 
+// ─── Token inspection ─────────────────────────────────────────────────────────
+
 export function isTokenExpired(token: string): boolean {
   try {
-    // Our mock tokens are base64 JSON, not real JWTs — parse directly
-    const raw = atob(token);
-    const payload = JSON.parse(raw) as TokenPayload;
+    if (isRealJwt(token)) {
+      // Real JWT — exp is in Unix seconds
+      const { exp } = decodeJwtPayload(token);
+      return Math.floor(Date.now() / 1000) >= exp;
+    }
+    // Mock token — exp is in Unix ms
+    const payload = JSON.parse(atob(token)) as MockTokenPayload;
     return Date.now() >= payload.exp;
   } catch {
     return true;
@@ -44,8 +79,10 @@ export function isTokenExpired(token: string): boolean {
 
 export function getTokenSubject(token: string): string | null {
   try {
-    const raw = atob(token);
-    const payload = JSON.parse(raw) as TokenPayload;
+    if (isRealJwt(token)) {
+      return decodeJwtPayload(token).sub ?? null;
+    }
+    const payload = JSON.parse(atob(token)) as MockTokenPayload;
     return payload.sub;
   } catch {
     return null;

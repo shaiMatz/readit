@@ -26,6 +26,8 @@ import { useBookmarks } from '@/hooks/useBookmarks';
 import { useFeedStore } from '@/store/feedStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { BookmarkButton } from '@/components/BookmarkButton';
+import { OfflineBanner } from '@/components/OfflineBanner';
+import { getRelativeTime } from '@/utils/formatters';
 import { spacing, fontSizes, radius } from '@/theme';
 
 const DISMISS_THRESHOLD = 130;
@@ -61,22 +63,21 @@ export default function ArticleDetailScreen() {
     }
   }, [item]);
 
-  // ── Drag-to-dismiss gesture (runs on the UI thread via Reanimated worklets) ──
+  // ── Drag-to-dismiss gesture ──
   const translateY = useSharedValue(0);
   const startY = useSharedValue(0);
 
   const goBack = useCallback(() => router.back(), [router]);
 
   const gesture = Gesture.Pan()
-    .activeOffsetY([0, 12]) // must move down ≥12px before activating
-    .failOffsetX([-20, 20]) // cancel if horizontal
+    .activeOffsetY([0, 12]) 
+    .failOffsetX([-20, 20]) 
     .onStart(() => {
       'worklet';
       startY.value = translateY.value;
     })
     .onUpdate((e) => {
       'worklet';
-      // Only drag downward
       translateY.value = Math.max(0, startY.value + e.translationY);
     })
     .onEnd(() => {
@@ -115,8 +116,8 @@ export default function ArticleDetailScreen() {
       style={[styles.container, { backgroundColor: colors.background }, animatedContainerStyle]}
     >
       <Stack.Screen options={{ headerShown: false }} />
+      <OfflineBanner />
 
-      {/* Custom header — drag gesture lives here only so WebView scroll is unaffected */}
       <GestureDetector gesture={gesture}>
         <SafeAreaView edges={['top']} style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
           {/* Drag handle */}
@@ -137,7 +138,7 @@ export default function ArticleDetailScreen() {
               style={[styles.headerTitle, { color: colors.textPrimary }]}
               numberOfLines={1}
             >
-              {item.by ? `by ${item.by}` : 'Article'}
+              {item.url ? new URL(item.url).hostname.replace(/^www\./, '') : 'Article'}
             </Text>
 
             <View style={styles.headerActions}>
@@ -165,6 +166,14 @@ export default function ArticleDetailScreen() {
 
           {/* Meta row */}
           <View style={styles.metaRow}>
+            {item.by ? (
+              <>
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {item.by}
+                </Text>
+                <Text style={[styles.metaDot, { color: colors.textTertiary }]}>·</Text>
+              </>
+            ) : null}
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>
               {item.score ?? 0} pts
             </Text>
@@ -172,6 +181,14 @@ export default function ArticleDetailScreen() {
             <Text style={[styles.metaText, { color: colors.textSecondary }]}>
               {item.descendants ?? 0} comments
             </Text>
+            {item.time ? (
+              <>
+                <Text style={[styles.metaDot, { color: colors.textTertiary }]}>·</Text>
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {getRelativeTime(item.time)}
+                </Text>
+              </>
+            ) : null}
           </View>
         </SafeAreaView>
       </GestureDetector>

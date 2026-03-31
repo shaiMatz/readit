@@ -94,8 +94,9 @@ export const useFeedStore = create<FeedState & FeedActions>()(
             isLoadingMore: false,
             hasMore: nextStart + PAGE_SIZE < ids.length && newItems.length > 0,
           });
-        } catch {
-          set({ isLoadingMore: false });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : 'Failed to load more';
+          set({ isLoadingMore: false, error: msg });
         }
       },
 

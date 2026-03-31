@@ -175,7 +175,7 @@ export default function SettingsScreen() {
 
         <View style={styles.footer}>
           <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-            ReadIt · Built with Expo
+            ReadIt
           </Text>
         </View>
       </ScrollView>

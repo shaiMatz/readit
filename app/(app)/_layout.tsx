@@ -1,9 +1,10 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { useBookmarksStore } from '@/store/bookmarksStore';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 export default function AppLayout() {
   const { colors } = useTheme();
@@ -11,8 +12,10 @@ export default function AppLayout() {
   const insets = useSafeAreaInsets();
 
   return (
-    <Tabs
-      screenOptions={{
+    <View style={styles.root}>
+      <OfflineBanner />
+      <Tabs
+        screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.textTertiary,
@@ -21,9 +24,7 @@ export default function AppLayout() {
           backgroundColor: colors.surface,
           borderTopColor: colors.divider,
           borderTopWidth: StyleSheet.hairlineWidth,
-          // Android elevation
           elevation: 12,
-          // iOS shadow
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.08,
@@ -89,5 +90,12 @@ export default function AppLayout() {
         }}
       />
     </Tabs>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
